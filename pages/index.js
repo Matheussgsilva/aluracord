@@ -1,34 +1,9 @@
 import appConfig from '../config.json';
 import { Box, Button, Text, TextField, Image } from '@skynexui/components';
+import React from 'react';
+import { useRouter } from 'next/router'
 
-function GlobalStyle() {
-    return (
-        <style global jsx>{`
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-          list-style: none;
-        }
-        body {
-          font-family: 'Open Sans', sans-serif;
-        }
-        /* App fit Height */ 
-        html, body, #__next {
-          min-height: 100vh;
-          display: flex;
-          flex: 1;
-        }
-        #__next {
-          flex: 1;
-        }
-        #__next > * {
-          flex: 1;
-        }
-        /* ./App fit Height */ 
-      `}</style>
-    );
-}
+
 
 function Title(props) {
     const Tag = props.tag || 'h1';
@@ -59,11 +34,11 @@ function Title(props) {
 //  export default HomePage
 
 export default function PaginaInicial() {
-    const username = 'peas';
+    const [userName, setUserName] = React.useState('matheussgsilva');
+    const roteamento = useRouter();
 
     return (
         <>
-            <GlobalStyle />
             <Box
                 styleSheet={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -90,6 +65,12 @@ export default function PaginaInicial() {
                     {/* Formulário */}
                     <Box
                         as="form"
+                        onSubmit={ function(e) {
+                            e.preventDefault();
+                            roteamento.push('/chat')
+                        }
+
+                        }
                         styleSheet={{
                             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                             width: { xs: '100%', sm: '50%' }, textAlign: 'center', marginBottom: '32px',
@@ -101,6 +82,11 @@ export default function PaginaInicial() {
                         </Text>
 
                         <TextField
+                            value={userName}
+                            onChange={function handleChange(e) {
+                                const valor = e.target.value;
+                                setUserName(valor)
+                            }}
                             fullWidth
                             textFieldColors={{
                                 neutral: {
@@ -147,7 +133,7 @@ export default function PaginaInicial() {
                                 borderRadius: '50%',
                                 marginBottom: '16px',
                             }}
-                            src={`https://github.com/${username}.png`}
+                            src={userName.length > 2 ? `https://github.com/${userName}.png` : `https://www.google.com/url?sa=i&url=https%3A%2F%2Fgithub.com%2Fcoil-kt%2Fcoil%2Fissues%2F392&psig=AOvVaw3PFT5vdgLLjzrqoGLnSWJU&ust=1643324769203000&source=images&cd=vfe&ved=0CAsQjRxqFwoTCPi5mI7E0PUCFQAAAAAdAAAAABAD`}
                         />
                         <Text
                             variant="body4"
@@ -158,7 +144,7 @@ export default function PaginaInicial() {
                                 borderRadius: '1000px'
                             }}
                         >
-                            {username}
+                            {userName}
                         </Text>
                     </Box>
                     {/* Photo Area */}
