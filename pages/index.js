@@ -34,7 +34,7 @@ function Title(props) {
 //  export default HomePage
 
 export default function PaginaInicial() {
-    const [userName, setUserName] = React.useState('matheussgsilva');
+    const [username, setUsername] = React.useState('matheussgsilva');
     const roteamento = useRouter();
 
     return (
@@ -67,7 +67,7 @@ export default function PaginaInicial() {
                         as="form"
                         onSubmit={ function(e) {
                             e.preventDefault();
-                            roteamento.push('/chat')
+                            roteamento.push(`/chat?username=${username}`);
                         }
 
                         }
@@ -82,10 +82,10 @@ export default function PaginaInicial() {
                         </Text>
 
                         <TextField
-                            value={userName}
+                            value={username}
                             onChange={function handleChange(e) {
                                 const valor = e.target.value;
-                                setUserName(valor)
+                                setUsername(valor)
                             }}
                             fullWidth
                             textFieldColors={{
@@ -133,7 +133,7 @@ export default function PaginaInicial() {
                                 borderRadius: '50%',
                                 marginBottom: '16px',
                             }}
-                            src={userName.length > 2 ? `https://github.com/${userName}.png` : `https://www.google.com/url?sa=i&url=https%3A%2F%2Fgithub.com%2Fcoil-kt%2Fcoil%2Fissues%2F392&psig=AOvVaw3PFT5vdgLLjzrqoGLnSWJU&ust=1643324769203000&source=images&cd=vfe&ved=0CAsQjRxqFwoTCPi5mI7E0PUCFQAAAAAdAAAAABAD`}
+                            src={`https://github.com/${username}.png`}
                         />
                         <Text
                             variant="body4"
@@ -144,7 +144,7 @@ export default function PaginaInicial() {
                                 borderRadius: '1000px'
                             }}
                         >
-                            {userName}
+                            {username}
                         </Text>
                     </Box>
                     {/* Photo Area */}
