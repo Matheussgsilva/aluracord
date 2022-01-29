@@ -2,15 +2,27 @@ import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
 import { createClient } from '@supabase/supabase-js'
+import { useRouter } from 'next/router';
+import { ButtonSendSticker } from '../src/components/ButtonSendStickers';
 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzQwNjAzOSwiZXhwIjoxOTU4OTgyMDM5fQ.a-9MFPlSvVWKALMHeECLAx9mxBmePbrdMv6bFKqyQ6s';
-    
-const SUPABASE_URL = 'https://xbxswtnbjdmqqxpmugnm.supabase.co';
-    
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzQwNjAzOSwiZXhwIjoxOTU4OTgyMDM5fQ.a-9MFPlSvVWKALMHeECLAx9mxBmePbrdMv6bFKqyQ6s';    
+const SUPABASE_URL = 'https://xbxswtnbjdmqqxpmugnm.supabase.co';    
 const supabadeClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function realTimeMessage(addMessage) {
+    return supabadeClient
+            .from('messages')
+            .on('INSERT', (res) => {
+                addMessage(res.new);
+            })
+            .subscribe();
+}
 
 
 export default function ChatPage() {
+    const roteamento = useRouter();
+    const user = roteamento.query.username;
+
     const [message, setMessage] = React.useState('');
     const [messageList, setMessageList] = React.useState([]);
     
@@ -20,29 +32,36 @@ export default function ChatPage() {
             .select('*')
             .order('id', { ascending: false })
             .then(({ data }) => {
-                setMessageList(data)
+                setMessageList(data);
             });
+
+    const subscription = realTimeMessage((newMessage) => {
+            setMessageList((currentMessageList) => {
+                return [
+                    newMessage,
+                    ...currentMessageList,
+                ]
+            })
+        });
+
+            return () => {
+                subscription.unsubscribe();
+            }
     }, [])
 
 
     function handleNewMessage(newMessage) {
         const messages = {
             //id: messageList.length + 1,
-            from: 'matheus.silva',
+            from: user,
             text: newMessage,
-        }
+        };
 
         supabadeClient
             .from('messages')
-            .insert(messages)
-            .then(({ data }) => {
-                setMessageList([
-                    data[0],
-                    ...messageList,
-                ])
-            })
+            .insert([messages])
+            .then(() => {})
 
-        setMessageList([ messages, ...messageList,]);
         setMessage('');
     }
     return (
@@ -85,15 +104,6 @@ export default function ChatPage() {
 
                     <MessageList messages={messageList} />
 
-                    {/*{messageList.map((currentMessage) => {
-                        return (
-                            <li key={currentMessage.id}>
-                                {currentMessage.from}:  {currentMessage.text}
-                            </li>
-                        )
-                    }
-                )}*/}
-
                 {/* Adicionar 'x' na mensagem para excluir*/}
 
                     <Box
@@ -128,8 +138,20 @@ export default function ChatPage() {
                                 color: appConfig.theme.colors.neutrals[200],
                             }}
                         />
+                        <ButtonSendSticker 
+                            onStickerClick={(sticker) => {
+                                handleNewMessage(`:stickers:${sticker}`)
+                            }}
+                        />
+                        <Button 
+                            label="Enviar" 
+                            colorVariant="positive"
+                            onClick={handleNewMessage}
+                            styleSheet={{
+                                marginLeft: '10px',
+                            }}
+                        />
                     </Box>
-                    <Button label="Enviar" colorVariant="positive" onClick={handleNewMessage}></Button>
                 </Box>
             </Box>
         </Box>
@@ -194,7 +216,7 @@ function MessageList(props) {
                                     display: 'inline-block',
                                     marginRight: '8px',
                                 }}
-                                src={`https://github.com/matheussgsilva.png`}
+                                src={`https://github.com/${chatMessage.from}.png`}
                             />
                             <Text tag="strong">
                                 {chatMessage.from}
@@ -210,7 +232,10 @@ function MessageList(props) {
                                 {(new Date().toLocaleDateString())}
                             </Text>
                         </Box>
-                        {chatMessage.text}
+                        {chatMessage.text.startsWith(':stickers:')
+                            ? (<Image src={chatMessage.text.replace(':stickers:', '')} styleSheet={{width: '150px',}}/>)
+                            : (chatMessage.text)
+                        }
                     </Text>
                 )
             })}
